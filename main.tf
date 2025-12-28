@@ -8,8 +8,8 @@ terraform {
 }
 
 provider "aws" {
-  profile = "default"
-  region  = "ap-south-1"
+  profile = "localstack"
+  region  = "us-east-1"
 }
 
 resource "aws_key_pair" "ec2_ssh_key" {
@@ -47,34 +47,21 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
   ip_protocol       = "-1" # allow all ports
 }
 
-data "aws_ami" "my_ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
+# chmod 600 ./terra-key
+# ssh -i ./terra-key root@ec2-172-17-0-3.localhost.localstack.cloud
 resource "aws_instance" "ec2_machine" {
-  ami           = data.aws_ami.my_ubuntu.id
-  count         = 1
-  instance_type = "t3.micro"
+  ami           = "ami-df5de72bdb3b" # https://docs.localstack.cloud/aws/services/ec2/
+  instance_type = var.ec2_instance_type
 
   security_groups = [aws_security_group.allow_tls.name]
   key_name        = aws_key_pair.ec2_ssh_key.key_name
 
   root_block_device {
     volume_type = "gp3"
-    volume_size = 15 # 15 GB
+    volume_size = 2 # GB
   }
 
   tags = {
-    "name" = "just testing though terraform"
+    "name" = var.instance_name
   }
 }

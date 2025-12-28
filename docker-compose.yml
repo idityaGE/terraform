@@ -1,0 +1,18 @@
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=ec2,s3,lambda,dynamodb,sqs,sns,iam
+      - DEBUG=1
+      # https://pypi.org/project/localstack-extension-terraform-init/
+      # - EXTENSION_AUTO_LOAD=localstack-extension-terraform-init
+    volumes:
+      - "localstack-volume:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      # - "./main.tf:/etc/localstack/init/ready.d/main.tf"
+
+volumes:
+  localstack-volume:
