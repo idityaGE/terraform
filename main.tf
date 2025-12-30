@@ -33,6 +33,14 @@ resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv4" {
   ip_protocol       = "tcp"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "allow_ipv4" {
+  security_group_id = aws_security_group.allow_tls.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 80
+  to_port           = 80
+  ip_protocol       = "tcp"
+}
+
 resource "aws_vpc_security_group_ingress_rule" "allow_ssh" {
   security_group_id = aws_security_group.allow_tls.id
   cidr_ipv4         = "0.0.0.0/0"
@@ -51,10 +59,12 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
 # ssh -i ./terra-key root@ec2-172-17-0-3.localhost.localstack.cloud
 resource "aws_instance" "ec2_machine" {
   ami           = "ami-df5de72bdb3b" # https://docs.localstack.cloud/aws/services/ec2/
-  instance_type = var.ec2_instance_type
+  instance_type = "a1.medium"
 
   security_groups = [aws_security_group.allow_tls.name]
   key_name        = aws_key_pair.ec2_ssh_key.key_name
+
+  user_data = file("install_nginx.sh")
 
   root_block_device {
     volume_type = "gp3"
