@@ -58,20 +58,30 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
 # chmod 600 ./terra-key
 # ssh -i ./terra-key root@ec2-172-17-0-3.localhost.localstack.cloud
 resource "aws_instance" "ec2_machine" {
+  # count = 2 # meta argument
+  # or
+  for_each = tomap({
+    "my_instance_1" = "t2.micro"
+    "my_instance_2" = "t3.micro"
+  })
+
+  depends_on = [aws_key_pair.ec2_ssh_key, aws_security_group.allow_tls]
+
   ami           = "ami-df5de72bdb3b" # https://docs.localstack.cloud/aws/services/ec2/
-  instance_type = "a1.medium"
+  instance_type = each.value
 
   security_groups = [aws_security_group.allow_tls.name]
   key_name        = aws_key_pair.ec2_ssh_key.key_name
+
 
   user_data = file("install_nginx.sh")
 
   root_block_device {
     volume_type = "gp3"
-    volume_size = 2 # GB
+    volume_size = var.env == "PRD" ? 10 : var.root_storage_size # GB
   }
 
   tags = {
-    "name" = var.instance_name
+    "name" = each.value
   }
 }

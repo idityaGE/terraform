@@ -9,3 +9,13 @@ variable "ec2_instance_type" {
   type        = string
   default     = "a1.medium"
 }
+
+variable "env" {
+  default = "PRD"
+  type    = string
+}
+
+variable "root_storage_size" {
+  default = 2
+  type    = number
+}
